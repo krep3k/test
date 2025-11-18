@@ -1,65 +1,78 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import link from "next/link";
+import { connectDB } from "@/lib/db";
+import Product from "@/models/product";
+
+export async function getLatestProducts() {
+  await connectDB();
+  const products = await Product.find({isActive: true})
+  .sort({createdAt: -1})
+  .limit(8)
+  .lean();
+
+  return JSON.parse(JSON.stringify(products)) as any[];
+}
+
+export default async function Home() {
+  const products = await getLatestProducts();
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <main className="relative min-h-screen overflow-hidden bg-linear-to-br from-slate-950 via-slate-900 text-slate-100 px-4 pb-16">
+      <div className="pointer-events-none absolute -top-32 -left-32 h-64 w-64 rounded-full bg-sky-500/25 blur-3xl"></div>
+      <div className="pointer-events-none absolute -bottom-40 right-0 h-72 w-72 rounded-full bg-purple-500/25 blur-3xl"></div>
+
+      <div className="relative max-w-5xl mx-auto pt-20">
+        <section className="text-center mb-12">
+          <p className="text-[11px] uppercase tracking-[0.35em] text-sky-400 mb-4">E-Commerce • v0.1</p>
+          <h1 className="text-4xl md:text-5xl font-semibold mb-4">
+            Selamat Datang
+            <span className="block mt-3 text-lg md:text-xl font-normal text-slate-300">
+              ke pengalaman belanja{""}
+              <span className="text-sky-400 font-medium"> Futuristik</span>
+            </span>
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p className="text-sm md:text-base text-slate-400 mb-8 max-w-xl mx-auto">
+            Sistem masih dalam tahap pengujian. Silahkan buat akun atau masuk untuk menguji alur login, akun, dan transaksi.
           </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+            <a href="/login" className="inline-flex items-center justify-center rounded-full border border-sky-400/70 bg-sky-500/20 px-7 py-2.5 text-sm font-medium tracking-wide hover:bg-sky-500/35 hover:border-sky-300 transition">Masuk</a>
+            <a href="/register" className="inline-flex items-center justify-center rounded-full border border-slate-600 px-7 py-2.5 text-sm font-medium tracking-wide hover:border-slate-300 hover:bg-slate-800/70 transition">Daftar</a>
+          </div>
+        </section>
+        <section>
+          <div className="flex justify-between items-center mb-3">
+            <h2 className="text-sm font-semibold text-slate-200">Produk Terbaru</h2>
+            <span className="text-[11px] text-slate-500">
+              {products.length === 0
+              ? "Belum ada produk"
+              : `${products.length} produk ditampilkan`
+              }
+            </span>
+          </div>
+          {products.length ===0 ? (
+            <p className="text-xs text-slate-500">
+              Tambahkan produk dari admin untuk melihat daftar di sini.
+            </p>
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+              {products.map((p: any) => (
+                <a href={`/products/${p.slug}`} key={p._id} className="group rounded-2xl border border-slate-800 bg-slate-900/70 p-3 hover:border-sky-500/60 hover:bg-slate-900 transition">
+                  <div className="aspect-4/3 mb-2 overflow-hidden rounded-xl bg-slate-800 flex items-center justify-center text-xs text-slate-500">
+                    {p.imageUrl ? (
+                      <img src={p.imageUrl} alt={p.name} className="h-full w-full object-cover group-hover:scale-[1.03] transition"/>
+                    ) : (
+                      <span>Belum ada gambar</span>
+                    )}
+                  </div>
+                  <p className="text-sm font-medium line-clamp-2 mb-1">{p.name}</p>
+                  <p className="text-xs text-sky-400 mb-1">Rp {Number(p.price).toLocaleString("id-ID")}</p>
+                  <p className="text-[11px] text-slate-500">Stok: {p.stock ?? 0}</p>
+                </a>
+              ))}
+            </div>
+          )}
+        </section>
+      </div>
+    </main>
   );
 }
