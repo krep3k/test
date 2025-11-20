@@ -32,7 +32,7 @@ export default function AddToCartButton({productId} : {productId: string}) {
             }
 
             alert("Produk ditambahkan ke keranjang");
-            router.refresh();
+            router.push("/cart");
         } catch (e) {
             console.error(e);
             setLoading(false);
