@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 type Order = {
@@ -21,6 +22,46 @@ export default function OrdersPage() {
     const [orders, setOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const router = useRouter();
+
+    async function fetchOrders() {
+        const res = await fetch("/api/orders", {cache: "no-store"});
+        if(!res.ok) return;
+        const data = await res.json();
+        setOrders(data.orders || []);
+    }
+
+    useEffect(() => {
+        fetchOrders();
+    }, []);
+
+    async function handlePay(orderId: string) {
+        try {
+            setLoading(true);
+            const res = await fetch("/api/orders/pay", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({orderId}),
+            });
+
+            if(!res.ok) {
+                const txt = await res.text();
+                console.error("Gagal melakukan pembayaran:", res.status, txt);
+                alert("Gagal melakukan pembayaran");
+                return;
+            }
+
+            alert("Pembayaran berhasil!");
+            await fetchOrders();
+        } catch (err) {
+            console.error("PAY_ORDER_ERROR:", err);
+            alert("Terjadi kesalahan saat melakukan pembayaran");
+        } finally {
+            setLoading(false);
+        }
+    }
 
     async function loadOrders() {
         try {
@@ -108,6 +149,9 @@ export default function OrdersPage() {
                                             <span>Rp {o.total.toLocaleString("id-ID")}</span>
                                         </div>
                                     </div>
+                                    {o.status === "pending" && (
+                                        <button onClick={() => handlePay(o._id)} disabled={loading} className="mt-3 inline-flex rounded-full bg-pink-500 px-4 py-2 text-sm font-semibold text-white hover:bg-pink-600 disabled:opacity-60">{loading ? "Memproses..." : "Bayar sekarang"}</button>
+                                    )}
                                 </div>
                             );
                         })}
