@@ -38,7 +38,7 @@ export default function OrdersPage() {
     async function handlePay(orderId: string) {
         try {
             setLoading(true);
-            const res = await fetch("/api/orders/pay", {
+            const res = await fetch("/api/orders/${orderId}/pay", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -150,7 +150,7 @@ export default function OrdersPage() {
                                         </div>
                                     </div>
                                     {o.status === "pending" && (
-                                        <button onClick={() => handlePay(o._id)} disabled={loading} className="mt-3 inline-flex rounded-full bg-pink-500 px-4 py-2 text-sm font-semibold text-white hover:bg-pink-600 disabled:opacity-60">{loading ? "Memproses..." : "Bayar sekarang"}</button>
+                                        <button onClick={() => handlePay(o._id.toString())} disabled={loading} className="mt-3 inline-flex rounded-full bg-pink-500 px-4 py-2 text-sm font-semibold text-white hover:bg-pink-600 disabled:opacity-60">{loading ? "Memproses..." : "Bayar sekarang"}</button>
                                     )}
                                 </div>
                             );
