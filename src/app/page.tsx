@@ -81,6 +81,9 @@ export default async function HomePage() {
                     {role === "admin" && (
                       <a href="/admin" className="rounded-full bg-slate-800 px-4 py-2 text-xs font-semibold text-slate-100 hover:bg-slate-700">Dashboard Admin</a>
                     )}
+                    {role === "user" && (
+                      <a href="/cart" className="rounded-full border border-pink-400/70 px-4 py-2 text-xs font-semibold text-pink-200 hover:bg-pink-500/10">Keranjang</a>
+                    )}
                   </div>
                 </>
               ) : (
